@@ -8,7 +8,7 @@
 # Assumes the artist and track are separated by a hyphen in the filename
 ###############################################################################
 
-if ! `which id3v2`; then
+if ! command -v id3v2; then
     echo "This script requires package 'id3v2'"
     exit 1
 elif [ $# -ne 1 ]; then
@@ -23,7 +23,7 @@ cd $1
 
 SAVEIFS=$IFS
 IFS=$'\n'
-for file in `ls -l | awk '{for(i=9;i<NF;i++){printf "%s ", $i}; printf "%s\n",$NF}'`; do
+for file in `find . -type f -exec basename {} \;`; do
     #-- Print the variables --#
     echo "File: '$file'"
 
@@ -34,6 +34,10 @@ for file in `ls -l | awk '{for(i=9;i<NF;i++){printf "%s ", $i}; printf "%s\n",$N
     echo -e "Track: '$track'\n"
 
     #-- Update the fucking tags --#
-    id3v2 -a "$artist" -t "$track" "$file"
+    if [ -f "$file" ]; then
+        id3v2 -a "$artist" -t "$track" "$file"
+    else
+        echo "Warn: '$file' does not exist. Skipping..."
+    fi
 done
 IFS=$SAVEIFS
